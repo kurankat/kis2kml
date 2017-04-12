@@ -14,24 +14,24 @@ Options:
                                    
 Table columns in database:
 
-  wn_num bssid 
-  essid encryption 
-  ssid_wpa_version 
-  ssid_type packets 
-  beaconrate 
-  wps 
-  wps_manuf 
-  dev_name 
-  model_name
-  model_num 
-  cloaked 
-  manuf 
-  channel 
-  numclients 
-  first_seen 
-  last_seen 
-  max_speed 
-  maxseenrate 
-  max_signal_dbm
-  max_noise_dbm 
-  peak_lat peak_lon
+  wn_num bssid <br>
+  essid encryption <br>
+  ssid_wpa_version <br>
+  ssid_type packets <br>
+  beaconrate <br>
+  wps <br>
+  wps_manuf <br>
+  dev_name <br>
+  model_name<br>
+  model_num <br>
+  cloaked <br>
+  manuf <br>
+  channel <br>
+  numclients <br>
+  first_seen <br>
+  last_seen <br>
+  max_speed <br>
+  maxseenrate <br>
+  max_signal_dbm<br>
+  max_noise_dbm <br>
+  peak_lat peak_lon<br>
