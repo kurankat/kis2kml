@@ -2,10 +2,10 @@
 # kis2kml.py is a script to process Kismet netxml files
 # into Google Earth KML for visualization.
 
+import xml.etree.ElementTree as xml
 import sqlite3 as sql
 import sys, getopt
 from os.path import exists
-import xml.etree.ElementTree as xml
 
 total_discovered = 0
 total_saved = 0
@@ -455,7 +455,9 @@ def append_kml_placemarks(kmllist, netlist):
                 kmllist.append('\t\t\t\t<styleUrl>#OPEN cloaked</styleUrl>')
             else:
                 kmllist.append('\t\t\t\t<styleUrl>#OPEN broadcasting</styleUrl>')
-        kmllist.append('\t\t\t\t<description><![CDATA[BSSID:%s<br><br>Encryption: %s<br>Channel: %d<br>Signal: %d<br>Current Clients: %d<br>]]></description>' % (net['bssid'], net['encryption'], net['channel'], net['max_signal_dbm'], net['numclients']))
+        kmllist.append('\t\t\t\t<description><![CDATA[BSSID:%s<br>%s<br>Encryption: %s<br>Channel: %d<br>Signal: %d<br>Current Clients: %d<br>]]></description>' \
+                        % (net['bssid'],net['last_seen'], net['encryption'], \
+                        net['channel'], net['max_signal_dbm'], net['numclients']))
         kmllist.append('\t\t\t\t<Point>')
         kmllist.append('\t\t\t\t\t<coordinates>%s,%s,0</coordinates>' % (net['peak_lon'], net['peak_lat']))
         kmllist.append('\t\t\t\t</Point>')
