@@ -2,10 +2,10 @@
 # kis2kml.py is a script to process Kismet netxml files
 # into Google Earth KML for visualization.
 
-import xml.etree.ElementTree as xml
 import sqlite3 as sql
 import sys, getopt
 from os.path import exists
+import xml.etree.ElementTree as xml
 
 total_discovered = 0
 total_saved = 0
@@ -15,7 +15,7 @@ def usage():
     print """Usage: kisiter.py [options]
         Options: can be either import (-i) or export (-x).
         \t\t-i <XML input file>
-        \t\t-x <KML export file>    # Export file can have optional -q SQL query
+        \t\t-x <KML export file>  # Export file can have optional -q SQL query
         \t\t-q \'<SQL query\'>'
         """
 
@@ -28,6 +28,8 @@ def load_nets_from_xml(xfile):
     global total_discovered
     netnodes = []
     netlist_dicts = []
+
+    print "Reading network information from %s" %xfile
 
     # Open Kismet .netxml file and load into list of nodes
     with open(xfile, 'rt') as kismet:
@@ -131,7 +133,9 @@ def populate_net_dict(wireless_node):
     # select appropriate text for encryption field
     wn['encryption'] = populate_encryption(wn['placeholder_encryption'])
     wn['numclients'] = len(wn['clients'])
-    print "Found wireless network with BSSID: %s" % (wn['bssid'])
+
+    print "Found infrastructure network with BSSID: %s - encryption: %s" \
+             % (wn['bssid'], wn['encryption'])
     return wn
 
 # Create an empty network dictionary with all needed keys
@@ -207,30 +211,30 @@ def create_net_table(con):
         cur = con.cursor()
         cur.execute("""
                     CREATE TABLE IF NOT EXISTS networks(
-                        wn_num INT, 
-                        bssid TEXT, 
-                        essid TEXT, 
-                        encryption TEXT, 
-                        ssid_wpa_version TEXT, 
-                        ssid_type TEXT, 
-                        packets INT, 
-                        beaconrate INT, 
+                        wn_num INT,
+                        bssid TEXT,
+                        essid TEXT,
+                        encryption TEXT,
+                        ssid_wpa_version TEXT,
+                        ssid_type TEXT,
+                        packets INT,
+                        beaconrate INT,
                         wps TEXT,
-                        wps_manuf TEXT, 
-                        dev_name TEXT, 
+                        wps_manuf TEXT,
+                        dev_name TEXT,
                         model_name TEXT,
-                        model_num TEXT, 
-                        cloaked TEXT, 
-                        manuf TEXT, 
+                        model_num TEXT,
+                        cloaked TEXT,
+                        manuf TEXT,
                         channel INT,
-                        numclients INT, 
-                        first_seen TEXT, 
-                        last_seen TEXT, 
+                        numclients INT,
+                        first_seen TEXT,
+                        last_seen TEXT,
                         max_speed INT,
-                        maxseenrate INT, 
-                        max_signal_dbm INT, 
+                        maxseenrate INT,
+                        max_signal_dbm INT,
                         max_noise_dbm INT,
-                        peak_lat TEXT, 
+                        peak_lat TEXT,
                         peak_lon TEXT)
                    """)
 
@@ -244,7 +248,8 @@ def add_net_to_db(netdict, con):
         if exists and morepower:
             delete_net_from_db(netdict, con)
         netlist = make_ordered_netlist(netdict)
-        print "Adding wireless network with BSSID: %s to database" %netdict['bssid']
+        print "Adding wireless network with BSSID: %s to database" \
+                %netdict['bssid']
 
         cur = con.cursor()
         cur.execute("""
@@ -272,7 +277,8 @@ def check_if_net_exists(netdict, con):
     if exists:
         with con:
             cur = con.cursor()
-            cur.execute('''SELECT max_signal_dbm FROM networks WHERE bssid = ?''', (newmac,))
+            cur.execute('''SELECT max_signal_dbm FROM networks WHERE bssid = ?''', \
+                            (newmac,))
             db_strength = int(cur.fetchone()[0])
 
     if maxsig > db_strength:
@@ -314,7 +320,8 @@ def make_ordered_netlist(netdict):
 # Erase existing weaker networks from db
 def delete_net_from_db(netdict, con):
     cur = con.cursor()
-    cur.execute('''DELETE from networks WHERE bssid = ?''', (netdict['bssid'],))
+    cur.execute('''DELETE from networks WHERE bssid = ?''', \
+                    (netdict['bssid'],))
 
 
 ### SECTION 3: Loading networks from database to create KML
@@ -519,7 +526,8 @@ def main(argv):
             inputfile = arg
             netlist = load_nets_from_xml(inputfile)
             save_nets_to_db(netlist, database)
-            print "\nFound %d wireless networks in Kismet netxml file" % total_discovered
+            print "\nFound %d wireless networks in Kismet netxml file" \
+                    % total_discovered
             print "Added %d wireless networks to SQL database" % total_saved
 
         elif opt == "-x":
