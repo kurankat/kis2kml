@@ -136,12 +136,33 @@ def populate_net_dict(wireless_node):
 
 # Create an empty network dictionary with all needed keys
 def make_net_dict():
-    keys = ['wn_num', 'first_seen', 'last_seen', 'ssid_type',
-            'max_speed', 'packets', 'beaconrate', 'wps', 'wps_manuf', 'dev_name',
-            'model_name', 'model_num', 'placeholder_encryption', 'encryption',
-            'ssid_wpa_version', 'cloaked', 'essid', 'bssid', 'manuf', 'channel',
-            'maxseenrate', 'max_signal_dbm', 'max_noise_dbm',
-            'clients', 'numclients', 'peak_lat', 'peak_lon']
+    keys = ['wn_num',
+            'first_seen',
+            'last_seen',
+            'ssid_type',
+            'max_speed',
+            'packets',
+            'beaconrate',
+            'wps',
+            'wps_manuf',
+            'dev_name',
+            'model_name',
+            'model_num',
+            'placeholder_encryption',
+            'encryption',
+            'ssid_wpa_version',
+            'cloaked',
+            'essid',
+            'bssid',
+            'manuf',
+            'channel',
+            'maxseenrate',
+            'max_signal_dbm',
+            'max_noise_dbm',
+            'clients',
+            'numclients',
+            'peak_lat',
+            'peak_lon']
     network = {key: None for key in keys}
     return network
 
@@ -185,16 +206,33 @@ def create_net_table(con):
     with con:
         cur = con.cursor()
         cur.execute("""
-            CREATE TABLE IF NOT EXISTS networks(
-            wn_num INT, bssid TEXT,
-            essid TEXT, encryption TEXT, ssid_wpa_version TEXT,
-            ssid_type TEXT, packets INT, beaconrate INT, wps TEXT,
-            wps_manuf TEXT, dev_name TEXT, model_name TEXT,
-            model_num TEXT, cloaked TEXT, manuf TEXT, channel INT,
-            numclients INT, first_seen TEXT, last_seen TEXT, max_speed INT,
-            maxseenrate INT, max_signal_dbm INT, max_noise_dbm INT,
-            peak_lat TEXT, peak_lon TEXT)
-            """)
+                    CREATE TABLE IF NOT EXISTS networks(
+                        wn_num INT, 
+                        bssid TEXT, 
+                        essid TEXT, 
+                        encryption TEXT, 
+                        ssid_wpa_version TEXT, 
+                        ssid_type TEXT, 
+                        packets INT, 
+                        beaconrate INT, 
+                        wps TEXT,
+                        wps_manuf TEXT, 
+                        dev_name TEXT, 
+                        model_name TEXT,
+                        model_num TEXT, 
+                        cloaked TEXT, 
+                        manuf TEXT, 
+                        channel INT,
+                        numclients INT, 
+                        first_seen TEXT, 
+                        last_seen TEXT, 
+                        max_speed INT,
+                        maxseenrate INT, 
+                        max_signal_dbm INT, 
+                        max_noise_dbm INT,
+                        peak_lat TEXT, 
+                        peak_lon TEXT)
+                   """)
 
 # Check if network exists in database.
 # If it doesn't exist save it.
@@ -210,9 +248,9 @@ def add_net_to_db(netdict, con):
 
         cur = con.cursor()
         cur.execute("""
-                        INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
-                        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                        )""", netlist)
+                    INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
+                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                    )""", netlist)
         total_saved += 1
 
 # Check if MAC address of network already in DB
