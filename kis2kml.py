@@ -6,6 +6,7 @@ import xml.etree.ElementTree as xml
 import sqlite3 as sql
 import sys, getopt
 from os.path import exists
+from datetime import datetime
 
 total_discovered = 0
 total_saved = 0
@@ -202,8 +203,7 @@ def save_nets_to_db(netlist, dfile):
     create_net_table(con)
     with con:
         for net in netlist:
-            add_net_to_db(net, con)
-
+            process_network(net, con)
 
 # If networks table does not exist, create empty table in database
 def create_net_table(con):
@@ -239,61 +239,153 @@ def create_net_table(con):
                    """)
 
 # Check if network exists in database.
-# If it doesn't exist save it.
 # If it exists, and stored network is weaker, erase it and save new data.
-def add_net_to_db(netdict, con):
-    global total_saved
-    exists, morepower = check_if_net_exists(netdict, con)
-    if not exists or morepower:
-        if exists and morepower:
-            delete_net_from_db(netdict, con)
-        netlist = make_ordered_netlist(netdict)
+def process_network(netdict, con):
+    exists = check_if_net_exists(netdict, con)
+
+    if not exists:
+        add_it_to_db(netdict, con)
         print "Adding wireless network with BSSID: %s to database" \
                 %netdict['bssid']
 
-        cur = con.cursor()
-        cur.execute("""
-                    INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
-                    ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
-                    )""", netlist)
-        total_saved += 1
-
-def if_net_new(netdict, con):
-    pass
-
-def if_net_weaker(netdict, con):
-    pass
-
-def if_net_stronger(netdict, con):
-    pass
+    elif exists:
+        stronger = netpower(netdict, con)
+        newer = xml_newer_than_db(netdict, con)
+        if newer:
+            if stronger:
+                new_net_stronger(netdict, con)
+            else:
+                new_net_weaker(netdict, con)
+        else:
+            if stronger:
+                old_net_stronger(netdict, con)
+            else:
+                old_net_weaker(netdict, con)
 
 # Check if MAC address of network already in DB
 def check_if_net_exists(netdict, con):
     newmac = netdict['bssid']
-    maxsig = int(netdict['max_signal_dbm'])
-    db_strength = None
-    is_more_powerful = False
     exists = False
 
-    # iterate through bssids in database to see if it's already in
     cur = con.cursor()
     cur.execute("SELECT bssid FROM networks")
     for row in cur:
         if newmac in row:
             exists = True
 
+    return exists
+
+# Check if xml network datestamp is more recent than in the database
+def xml_newer_than_db(netdict, con):
+    xml_newer = False
+    # Load xml date fields into datetime objects
+    xml_first_seen = datetime.strptime(netdict['first_seen'], \
+                                        "%a %b %d %H:%M:%S %Y")
+    xml_last_seen = datetime.strptime(netdict['last_seen'], \
+                                        "%a %b %d %H:%M:%S %Y")
+    cur = con.cursor()
+    cur.execute('''SELECT first_seen,last_seen FROM networks WHERE bssid = ?''', \
+                (netdict['bssid'],))
+    db_dates = cur.fetchall()[0]
+
+    # Load DB date fields into datetime objects
+    db_first_seen = datetime.strptime(db_dates[0], "%a %b %d %H:%M:%S %Y")
+    db_last_seen = datetime.strptime(db_dates[1], "%a %b %d %H:%M:%S %Y")
+
+    if xml_last_seen > db_last_seen:
+        xml_newer = True
+
+    return xml_newer
+
+# Check if xml network signal is stronger than in the database
+def netpower(netdict, con):
+    xml_mac = netdict['bssid']
+    maxsig = int(netdict['max_signal_dbm'])
+    db_strength = None
+    is_more_powerful = False
+
     # compare max_signal_dbm of two networks
     if exists:
-        with con:
-            cur = con.cursor()
-            cur.execute('''SELECT max_signal_dbm FROM networks WHERE bssid = ?''', \
-                            (newmac,))
-            db_strength = int(cur.fetchone()[0])
+        cur = con.cursor()
+        cur.execute('''SELECT max_signal_dbm FROM networks WHERE bssid = ?''', \
+                    (xml_mac,))
+        db_strength = int(cur.fetchone()[0])
 
     if maxsig > db_strength:
         is_more_powerful = True
 
-    return exists, is_more_powerful
+    return is_more_powerful
+
+# When wireless network is not already in the DB, save it
+def add_it_to_db(netdict, con):
+    global total_saved
+    netlist = make_ordered_netlist(netdict)
+    cur = con.cursor()
+    cur.execute("""
+                INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
+                ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+                )""", netlist)
+    total_saved += 1
+
+# When wireless network is newer and weaker than same bssid in DB
+# then update 'last_seen' to latest timestamp
+def new_net_weaker(netdict, con):
+    global total_saved
+
+    cur = con.cursor()
+    cur.execute("UPDATE networks SET last_seen = ? where bssid = ?", \
+                (netdict['last_seen'], netdict['bssid'],))
+    print "Updating 'last_seen' field on %s to newer timestamp" \
+            % netdict['bssid']
+    total_saved += 1
+
+# When wireless network is newer and stronger than same bssid in DB
+# then overwrite db with all new data except 'first_seen'
+def new_net_stronger(netdict, con):
+    global total_saved
+    xml_first_seen = netdict['first_seen']
+    cur = con.cursor()
+    cur.execute('''SELECT first_seen FROM networks WHERE bssid = ?''', \
+                (netdict['bssid'],))
+    db_first_seen = cur.fetchone()
+
+    delete_net_from_db(netdict, con)
+    netdict['first_seen'] = str(db_first_seen[0])
+    add_it_to_db(netdict, con)
+    print "Updating wireless network with BSSID: %s to stronger version" \
+            %netdict['bssid']
+
+    total_saved += 1
+
+# When wireless network is older and weaker than same bssid in DB
+# then update 'first_seen' to earliest timestamp
+def old_net_weaker(netdict, con):
+    global total_saved
+
+    cur = con.cursor()
+    cur.execute("UPDATE networks SET first_seen = ? where bssid = ?", \
+                (netdict['first_seen'], netdict['bssid'],))
+    print "Updating 'first_seen' field on %s to older timestamp" \
+            % netdict['bssid']
+
+    total_saved += 1
+
+# When wireless network is older and stronger than same bssid in DB
+# then overwrite db with all new data except 'last_seen'
+def old_net_stronger(netdict, con):
+    global total_saved
+    xml_last_seen = netdict['last_seen']
+    cur = con.cursor()
+    cur.execute('''SELECT last_seen FROM networks WHERE bssid = ?''', \
+                (netdict['bssid'],))
+    db_last_seen = cur.fetchone()
+
+    delete_net_from_db(netdict, con)
+    netdict['last_seen'] = str(db_last_seen[0])
+    add_it_to_db(netdict, con)
+    print "Updating wireless network with BSSID: %s to stronger version" \
+            %netdict['bssid']
+    total_saved += 1
 
 # Turn each net dictionary into a list, return list
 def make_ordered_netlist(netdict):
