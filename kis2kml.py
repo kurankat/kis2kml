@@ -200,43 +200,42 @@ def populate_encryption(placeholder_list):
 def save_nets_to_db(netlist, dfile):
     global total_saved
     con = sql.connect(dfile)
-    create_net_table(con)
     with con:
+        create_net_table(con)
         for net in netlist:
             process_network(net, con)
 
 # If networks table does not exist, create empty table in database
 def create_net_table(con):
-    with con:
-        cur = con.cursor()
-        cur.execute("""
-                    CREATE TABLE IF NOT EXISTS networks(
-                        wn_num INT,
-                        bssid TEXT,
-                        essid TEXT,
-                        encryption TEXT,
-                        ssid_wpa_version TEXT,
-                        ssid_type TEXT,
-                        packets INT,
-                        beaconrate INT,
-                        wps TEXT,
-                        wps_manuf TEXT,
-                        dev_name TEXT,
-                        model_name TEXT,
-                        model_num TEXT,
-                        cloaked TEXT,
-                        manuf TEXT,
-                        channel INT,
-                        numclients INT,
-                        first_seen TEXT,
-                        last_seen TEXT,
-                        max_speed INT,
-                        maxseenrate INT,
-                        max_signal_dbm INT,
-                        max_noise_dbm INT,
-                        peak_lat TEXT,
-                        peak_lon TEXT)
-                   """)
+    cur = con.cursor()
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS networks(
+                    wn_num INT,
+                    bssid TEXT,
+                    essid TEXT,
+                    encryption TEXT,
+                    ssid_wpa_version TEXT,
+                    ssid_type TEXT,
+                    packets INT,
+                    beaconrate INT,
+                    wps TEXT,
+                    wps_manuf TEXT,
+                    dev_name TEXT,
+                    model_name TEXT,
+                    model_num TEXT,
+                    cloaked TEXT,
+                    manuf TEXT,
+                    channel INT,
+                    numclients INT,
+                    first_seen TEXT,
+                    last_seen TEXT,
+                    max_speed INT,
+                    maxseenrate INT,
+                    max_signal_dbm INT,
+                    max_noise_dbm INT,
+                    peak_lat TEXT,
+                    peak_lon TEXT)
+               """)
 
 # Check if network exists in database.
 # If it exists, and stored network is weaker, erase it and save new data.
@@ -354,7 +353,6 @@ def new_net_stronger(netdict, con):
     add_it_to_db(netdict, con)
     print "Updating wireless network with BSSID: %s to stronger version" \
             %netdict['bssid']
-
     total_saved += 1
 
 # When wireless network is older and weaker than same bssid in DB
@@ -367,7 +365,6 @@ def old_net_weaker(netdict, con):
                 (netdict['first_seen'], netdict['bssid'],))
     print "Updating 'first_seen' field on %s to older timestamp" \
             % netdict['bssid']
-
     total_saved += 1
 
 # When wireless network is older and stronger than same bssid in DB
