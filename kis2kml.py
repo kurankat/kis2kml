@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-# kis2kml.py is a script to process Kismet netxml files
-# into Google Earth KML for visualization.
+# kis2kml.py is a script to process Kismet netxml files into
+# Google Earth KML for visualization.
 
 import xml.etree.ElementTree as xml
 import sqlite3 as sql
@@ -10,6 +10,7 @@ from datetime import datetime
 
 total_discovered = 0
 total_saved = 0
+total_updated = 0
 total_exported = 0
 
 def usage():
@@ -240,16 +241,20 @@ def create_net_table(con):
 # Check if network exists in database.
 # If it exists, and stored network is weaker, erase it and save new data.
 def process_network(netdict, con):
+    global total_saved, total_updated
+
     exists = check_if_net_exists(netdict, con)
 
     if not exists:
         add_it_to_db(netdict, con)
         print "Adding wireless network with BSSID: %s to database" \
                 %netdict['bssid']
+        total_saved += 1
 
     elif exists:
         stronger = netpower(netdict, con)
         newer = xml_newer_than_db(netdict, con)
+        total_updated += 1
         if newer:
             if stronger:
                 new_net_stronger(netdict, con)
@@ -324,7 +329,6 @@ def add_it_to_db(netdict, con):
                 INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )""", netlist)
-    total_saved += 1
 
 # When wireless network is newer and weaker than same bssid in DB
 # then update 'last_seen' to latest timestamp
@@ -336,12 +340,10 @@ def new_net_weaker(netdict, con):
                 (netdict['last_seen'], netdict['bssid'],))
     print "Updating 'last_seen' field on %s to newer timestamp" \
             % netdict['bssid']
-    total_saved += 1
 
 # When wireless network is newer and stronger than same bssid in DB
 # then overwrite db with all new data except 'first_seen'
 def new_net_stronger(netdict, con):
-    global total_saved
     xml_first_seen = netdict['first_seen']
     cur = con.cursor()
     cur.execute('''SELECT first_seen FROM networks WHERE bssid = ?''', \
@@ -353,7 +355,6 @@ def new_net_stronger(netdict, con):
     add_it_to_db(netdict, con)
     print "Updating wireless network with BSSID: %s to stronger version" \
             %netdict['bssid']
-    total_saved += 1
 
 # When wireless network is older and weaker than same bssid in DB
 # then update 'first_seen' to earliest timestamp
@@ -365,12 +366,10 @@ def old_net_weaker(netdict, con):
                 (netdict['first_seen'], netdict['bssid'],))
     print "Updating 'first_seen' field on %s to older timestamp" \
             % netdict['bssid']
-    total_saved += 1
 
 # When wireless network is older and stronger than same bssid in DB
 # then overwrite db with all new data except 'last_seen'
 def old_net_stronger(netdict, con):
-    global total_saved
     xml_last_seen = netdict['last_seen']
     cur = con.cursor()
     cur.execute('''SELECT last_seen FROM networks WHERE bssid = ?''', \
@@ -382,7 +381,6 @@ def old_net_stronger(netdict, con):
     add_it_to_db(netdict, con)
     print "Updating wireless network with BSSID: %s to stronger version" \
             %netdict['bssid']
-    total_saved += 1
 
 # Turn each net dictionary into a list, return list
 def make_ordered_netlist(netdict):
@@ -629,6 +627,7 @@ def main(argv):
             print "\nFound %d wireless networks in Kismet netxml file" \
                     % total_discovered
             print "Added %d wireless networks to SQL database" % total_saved
+            print "Updated %d wireless networks in SQL database" % total_updated
 
         elif opt == "-x":
             exportfile = arg
