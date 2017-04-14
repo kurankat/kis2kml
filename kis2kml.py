@@ -258,6 +258,15 @@ def add_net_to_db(netdict, con):
                     )""", netlist)
         total_saved += 1
 
+def if_net_new(netdict, con):
+    pass
+
+def if_net_weaker(netdict, con):
+    pass
+
+def if_net_stronger(netdict, con):
+    pass
+
 # Check if MAC address of network already in DB
 def check_if_net_exists(netdict, con):
     newmac = netdict['bssid']
