@@ -2,7 +2,7 @@
 # kis2kml.py is a script to process Kismet netxml files into
 # Google Earth KML for visualization.
 
-import xml.etree.ElementTree as xml
+import xml.etree.cElementTree as xml
 import sqlite3 as sql
 import sys, getopt
 from os.path import exists
@@ -16,19 +16,21 @@ total_updated = 0
 total_exported = 0
 
 def welcome():
-    print "\n"
-    print "*******************************************************************"
-    print "*            kis2kml, a Kismet netxml file parser                 *"
-    print "*  Use this script to import networks from a Kismet .netxml file  *"
-    print "*        or to export them to a Google Earth .kml file            *"
-    print "*******************************************************************\n"
+    print "\n*****************************************************************"
+    print "*           kis2kml, a Kismet netxml file parser                *"
+    print "* Use this script to import networks from a Kismet .netxml file *"
+    print "*       or to export them to a Google Earth .kml file           *"
+    print "*****************************************************************\n"
 
 def usage():
     print "Usage: kis2kml [options]"
-    print "       Options: can be either import (-i) or export (-x)."
-    print "                -i <XML input file>   # Input file has to be Kismet .netxml"
-    print "                -x <KML export file>  # Export file can have optional -q SQL query"
-    print "                -q '<SQL query>'\n"
+    print "   Options: can be either import (-i) or export (-x)."
+    print (
+           "       -i <XML input file>   # Input file has to be "
+           "Kismet .netxml")
+    print ("       -x <KML export file>  # Export file can have "
+           "optional -q SQL query")
+    print ("        -q '<SQL query>'\n")
 
 
 ### SECTION 1: Loading networks from Kismet netxml
@@ -82,11 +84,16 @@ def runtime_exists():
     con = sql.connect(database)
     with con:
         cur = con.cursor()
-        cur.execute("SELECT * FROM run")
-        db_run_time = cur.fetchall()
-        for rtime in db_run_time:
-            if (runtime != "") and (runtime in rtime):
-                exists = True
+        try:
+            cur.execute("SELECT * FROM run")
+            db_run_time = cur.fetchall()
+            for rtime in db_run_time:
+                if (runtime != "") and (runtime in rtime):
+                    exists = True
+        except sql.OperationalError as err:
+            if "no such table" in err:
+                exists = False
+
     return exists
 
 # Function to return a list of eTree nodes. Takes the whole XML tree as the
@@ -97,7 +104,9 @@ def pop_xml_netlist(whole_tree):
         if (node.attrib.get('type') == 'infrastructure'):
             nodelist.append(node)
     if len(nodelist) == 0:
-        print "\n+++ WARNING +++  There don't seem to be any wireless networks in your input file\n"
+        print ("\n+++ WARNING +++  "
+               "There don't seem to be any wireless networks in your "
+               "input file\n")
         usage()
         sys.exit()
     return nodelist
@@ -152,7 +161,8 @@ def populate_net_dict(wireless_node):
                         wn['essid'] = ""
                     else: # Replace some characters that cause problems in KML
                         tempessid = ssid_info.text
-                        wn['essid'] = tempessid.replace('&', '').replace('<', '').replace('>', '')
+                        wn['essid'] = tempessid.replace('&', '').replace('<', \
+                            '').replace('>', '')
                     wn['cloaked'] = ssid_info.attrib['cloaked']
 
         if lev1.tag == 'BSSID':
@@ -337,8 +347,8 @@ def xml_newer_than_db(netdict, con):
     xml_last_seen = datetime.strptime(netdict['last_seen'], \
                                         "%a %b %d %H:%M:%S %Y")
     cur = con.cursor()
-    cur.execute('''SELECT first_seen,last_seen FROM networks WHERE bssid = ?''', \
-                (netdict['bssid'],))
+    cur.execute("SELECT first_seen,last_seen FROM networks WHERE bssid = ?",
+               (netdict['bssid'],))
     db_dates = cur.fetchall()[0]
 
     # Load DB date fields into datetime objects
@@ -360,8 +370,8 @@ def netpower(netdict, con):
     # compare max_signal_dbm of two networks
     if exists:
         cur = con.cursor()
-        cur.execute('''SELECT max_signal_dbm FROM networks WHERE bssid = ?''', \
-                    (xml_mac,))
+        cur.execute("SELECT max_signal_dbm FROM networks WHERE bssid = ?",
+                   (xml_mac,))
         db_strength = int(cur.fetchone()[0])
 
     if maxsig > db_strength:
@@ -540,7 +550,8 @@ def create_kml_headers(kmllist):
     kmllist.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
     kmllist.append('\t<Document>')
     kmllist.append('\t\t<name>Wireless Networks</name>')
-    kmllist.append('\t\t<description>Wireless networks parsed from Kismet xml</description>')
+    kmllist.append('\t\t<description>Wireless networks '
+                   'parsed from Kismet xml</description>')
     return kmllist
 
 # For every encryption type found in query, create a style
@@ -561,7 +572,8 @@ def append_kml_styles(kmllist, netlist):
         kmllist.append('\t\t\t\t<color>ff%s</color>' % netcolours[e])
         kmllist.append('\t\t\t\t<scale>1</scale>')
         kmllist.append('\t\t\t\t<Icon>')
-        kmllist.append('\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>')
+        kmllist.append('\t\t\t\t\t<href>'
+            'http://maps.google.com/mapfiles/kml/shapes/target.png</href>')
         kmllist.append('\t\t\t\t</Icon>')
         kmllist.append('\t\t\t</IconStyle>')
         kmllist.append('\t\t</Style>')
@@ -570,7 +582,8 @@ def append_kml_styles(kmllist, netlist):
         kmllist.append('\t\t\t\t<color>7f%s</color>' % netcolours[e])
         kmllist.append('\t\t\t\t<scale>1</scale>')
         kmllist.append('\t\t\t\t<Icon>')
-        kmllist.append('\t\t\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>')
+        kmllist.append('\t\t\t\t\t<href>'
+            'http://maps.google.com/mapfiles/kml/shapes/target.png</href>')
         kmllist.append('\t\t\t\t</Icon>')
         kmllist.append('\t\t\t</IconStyle>')
         kmllist.append('\t\t</Style>')
@@ -583,7 +596,8 @@ def append_kml_placemarks(kmllist, netlist):
     nets = netlist
     kmllist.append('\t\t<Folder>')
     kmllist.append('\t\t\t<name>Placemarks</name>')
-    kmllist.append('\t\t\t<description>Wireless network locations</description>')
+    kmllist.append('\t\t\t<description>Wireless network locations'
+                   '</description>')
     for net in netlist:
         kmllist.append('\t\t\t<Placemark>')
         if net['essid']:
@@ -594,27 +608,35 @@ def append_kml_placemarks(kmllist, netlist):
             if net['cloaked'] == 'true':
                 kmllist.append('\t\t\t\t<styleUrl>#WEP cloaked</styleUrl>')
             else:
-                kmllist.append('\t\t\t\t<styleUrl>#WEP broadcasting</styleUrl>')
+                kmllist.append('\t\t\t\t<styleUrl>#WEP broadcasting'
+                               '</styleUrl>')
 
         if 'WPA' in net['encryption']:
             if net['cloaked'] == 'true':
                 kmllist.append('\t\t\t\t<styleUrl>#WPA cloaked</styleUrl>')
             else:
-                kmllist.append('\t\t\t\t<styleUrl>#WPA broadcasting</styleUrl>')
+                kmllist.append('\t\t\t\t<styleUrl>#WPA broadcasting'
+                               '</styleUrl>')
 
         if 'OPEN' in net['encryption']:
             if net['cloaked'] == 'true':
                 kmllist.append('\t\t\t\t<styleUrl>#OPEN cloaked</styleUrl>')
             else:
-                kmllist.append('\t\t\t\t<styleUrl>#OPEN broadcasting</styleUrl>')
-        kmllist.append('\t\t\t\t<description><![CDATA[BSSID:%s<br>%s<br>Encryption: %s<br>Channel: %d<br>Signal: %d<br>Current Clients: %d<br>]]></description>' \
+                kmllist.append('\t\t\t\t<styleUrl>#OPEN broadcasting'
+                               '</styleUrl>')
+        kmllist.append('\t\t\t\t<description><![CDATA[BSSID:%s<br>%s<br>'
+                       'Encryption: %s<br>Channel: %d<br>Signal: %d<br>'
+                       'Current Clients: %d<br>]]></description>' \
                         % (net['bssid'],net['last_seen'], net['encryption'], \
-                        net['channel'], net['max_signal_dbm'], net['numclients']))
+                        net['channel'], net['max_signal_dbm'], \
+                        net['numclients']))
         kmllist.append('\t\t\t\t<Point>')
-        kmllist.append('\t\t\t\t\t<coordinates>%s,%s,0</coordinates>' % (net['peak_lon'], net['peak_lat']))
+        kmllist.append('\t\t\t\t\t<coordinates>%s,%s,0</coordinates>' \
+                       % (net['peak_lon'], net['peak_lat']))
         kmllist.append('\t\t\t\t</Point>')
         kmllist.append('\t\t\t</Placemark>')
-        print "Found network with BSSID: %s ** Exporting to KML file" % net['bssid']
+        print "Found network with BSSID: %s ** Exporting to KML file" \
+               % net['bssid']
         total_exported += 1
 
     kmllist.append('\t\t</Folder>')
@@ -629,7 +651,7 @@ def close_kml(kmllist):
 # Save KML list to file one row at a time
 def kml_to_file(kml, filename):
     writeable = check_write(filename)
-    if writeable: # This is probably obsolete since program exits if user responds 'n'
+    if writeable: # This is probably obsolete
         with open(filename, "w") as f:
             for line in kml:
                 f.write("%s\n" % line)
@@ -678,11 +700,11 @@ def main(argv):
             inputfile = arg
             netlist = load_nets_from_xml(inputfile)
             save_nets_to_db(netlist, database)
-            print "Detection run started on %s" % runtime
             print "\nFound %d wireless networks in Kismet netxml file" \
                     % total_discovered
             print "Added %d wireless networks to SQL database" % total_saved
-            print "Updated %d wireless networks in SQL database" % total_updated
+            print "Updated %d wireless networks in SQL database\n" \
+                   % total_updated
 
         elif opt == "-x":
             exportfile = arg
