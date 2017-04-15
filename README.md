@@ -31,7 +31,8 @@ kis2kml [options]
 ### Table columns in database:
 
 -  'wn_num bssid' <br>
--  'essid encryption' <br>
+-  'essid' <br>
+-  'encryption' <br>
 -  'ssid_wpa_version' <br>
 -  'ssid_type packets' <br>
 -  'beaconrate' <br>
@@ -51,3 +52,23 @@ kis2kml [options]
 -  'max_signal_dbm'<br>
 -  'max_noise_dbm' <br>
 -  'peak_lat peak_lon'<br>
+
+### Usage examples:
+
+```
+kis2kml -i kismet-output-file.netxml
+
+kis2kml -x all-database-contents.kml
+
+kis2kml -x wep-only.kml -q "SELECT * FROM networks WHERE encryption = 'WEP'"
+
+kis2kml -x strong_nets.kml \
+        -q "SELECT * FROM networks WHERE max_signal_dbm > -60"
+
+
+kis2kml -x strong_wep.kml
+        -q "SELECT * FROM networks WHERE max_signal_dbm > -60 AND encryption = 'WEP'"
+
+kis2kml -x open_but_cloaked.kml
+        -q "SELECT * FROM networks WHERE cloaked = 'true' AND encryption = 'OPEN'"
+```
