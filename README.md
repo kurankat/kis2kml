@@ -1,16 +1,28 @@
 # kis2kml
 
-A python script to parse Kismet netxml wireless databases into a SQL database
-and query this database to generate Google Earth KML files.
+A python script to parse wireless networks into a sqlite3 database
+'wireless.db' and query this database to generate Google Earth KML files.
 
-I don't mind Giskismet, it does the job relatively well, but I wanted to be
-able make use of signal strength information in SQL queries, which Giskismet
-ignores, to filter networks that one can realistically attach to. I found Perl
-too hard to learn, so I wrote a Python script to do the job.
+The script takes input from the wardriving suite Kismet, saved in netxml format,
+and produces a kml file that allows easy visualization of the network data
+inside Google Earth.
 
-When exporting databased networks, you can write the whole database to a kml
+kis2kml is essentially a rewrite in Python of some of the functionality of
+giskismet, which is written in Perl and comes bundled in with Kali Linux.
+
+I don't mind giskismet, it does the job relatively well, but I wanted to be
+able to make use of signal strength information in SQL queries, which giskismet
+ignores, to be able to filter networks that one can realistically attach to. I
+found Perl too hard to learn, so I taught myself Python and wrote a script to
+do the job.
+
+When exporting databased networks, you can export the whole database to a kml
 file, or pass the program an optional SQL query to select networks that conform
-with the given query.
+with the given query. The SQL query must be inside double quotation marks.
+
+I cannot comment on the legality or illegality of wardriving in your country
+or area. Please keep this in mind before using this program to parse wardriving
+data.
 
 ```
 USAGE:
@@ -28,7 +40,34 @@ kis2kml [options]
                                         has to be a valid SQL query and inside
                                         quote marks ('SQL query').
 ```                                   
-### Table columns in database:
+
+### Usage examples:
+
+```
+kis2kml -i kismet-output-file.netxml
+
+kis2kml -x all-database-contents.kml
+
+kis2kml -x wep-only.kml -q "SELECT * FROM networks WHERE encryption = 'WEP'"
+
+kis2kml -x strong_nets.kml \
+        -q "SELECT * FROM networks WHERE max_signal_dbm > -60"
+
+kis2kml -x strong_wep.kml \
+        -q "SELECT * FROM networks WHERE max_signal_dbm > -60 AND \
+        encryption = 'WEP'"
+
+kis2kml -x open_but_cloaked.kml \
+        -q "SELECT * FROM networks WHERE cloaked = 'true' AND \
+        encryption = 'OPEN'"
+```
+
+### Tables in database ('wireless.db')
+
+- networks
+- run
+
+### Table columns in networks:
 
 -  'wn_num bssid' <br>
 -  'essid' <br>
@@ -53,22 +92,6 @@ kis2kml [options]
 -  'max_noise_dbm' <br>
 -  'peak_lat peak_lon'<br>
 
-### Usage examples:
+### Table columns in run:
 
-```
-kis2kml -i kismet-output-file.netxml
-
-kis2kml -x all-database-contents.kml
-
-kis2kml -x wep-only.kml -q "SELECT * FROM networks WHERE encryption = 'WEP'"
-
-kis2kml -x strong_nets.kml \
-        -q "SELECT * FROM networks WHERE max_signal_dbm > -60"
-
-
-kis2kml -x strong_wep.kml \
-        -q "SELECT * FROM networks WHERE max_signal_dbm > -60 AND encryption = 'WEP'"
-
-kis2kml -x open_but_cloaked.kml \
-        -q "SELECT * FROM networks WHERE cloaked = 'true' AND encryption = 'OPEN'"
-```
+- 'start_time'
