@@ -20,9 +20,11 @@ When exporting databased networks, you can export the whole database to a kml
 file, or pass the program an optional SQL query to select networks that conform
 with the given query. The SQL query must be inside double quotation marks.
 
-I cannot comment on the legality or illegality of wardriving in your country
-or area. Please keep this in mind before using this program to parse wardriving
-data.
+The Author in no way advocates the cracking of WiFi encryption or connecting to 
+private networks without permission. Mapping of wireless access points does not 
+violate any laws in the author's area, though I cannot comment on the legality 
+or illegality of wardriving in your country or area. Please keep this in mind 
+before using this program to parse wardriving data.
 
 ```
 USAGE:
