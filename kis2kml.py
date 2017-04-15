@@ -13,13 +13,21 @@ total_saved = 0
 total_updated = 0
 total_exported = 0
 
+def welcome():
+    print "\n"
+    print "*******************************************************************"
+    print "*            kis2kml, a Kismet netxml file parser                 *"
+    print "*  Use this script to import networks from a Kismet .netxml file  *"
+    print "*        or to export them to a Google Earth .kml file            *"
+    print "*******************************************************************\n"
+
 def usage():
-    print """Usage: kisiter.py [options]
-        Options: can be either import (-i) or export (-x).
-        \t\t-i <XML input file>
-        \t\t-x <KML export file>  # Export file can have optional -q SQL query
-        \t\t-q \'<SQL query\'>'
-        """
+    print "Usage: kis2kml [options]"
+    print "       Options: can be either import (-i) or export (-x)."
+    print "                -i <XML input file>   # Input file has to be Kismet .netxml"
+    print "                -x <KML export file>  # Export file can have optional -q SQL query"
+    print "                -q '<SQL query>'\n"
+
 
 ### SECTION 1: Loading networks from Kismet netxml
 
@@ -34,8 +42,22 @@ def load_nets_from_xml(xfile):
     print "Reading network information from %s" %xfile
 
     # Open Kismet .netxml file and load into list of nodes
-    with open(xfile, 'rt') as kismet:
-            tree = xml.parse(kismet)
+    try:
+        with open(xfile, 'rt') as kismet:
+            try:
+                tree = xml.parse(kismet)
+            except xml.ParseError as xmlerr:
+                print "\n*** ERROR ***  Problem parsing input file."
+                print "               Is it a Kismet netxml file?"
+                print "               Python says: %s\n" % xmlerr
+                usage()
+                sys.exit(2)
+    except IOError as ioerr:
+        print "\n*** ERROR ***  Cannot read input file. Does it exist?"
+        print "\tPython says: %s\n" % ioerr
+        usage()
+        sys.exit(2)
+
     netnodes = pop_xml_netlist(tree)
 
     # For each wireless network node, create a dictionary, and append it to
@@ -53,6 +75,10 @@ def pop_xml_netlist(whole_tree):
     for node in whole_tree.findall('.//wireless-network'):
         if (node.attrib.get('type') == 'infrastructure'):
             nodelist.append(node)
+    if len(nodelist) == 0:
+        print "\n+++ WARNING +++  There don't seem to be any wireless networks in your input file\n"
+        usage()
+        sys.exit()
     return nodelist
 
 # Populate values of network dictionary from xml node
@@ -596,8 +622,7 @@ def main(argv):
     xmlsource = ''
     database = 'wireless.db'
     query = ''
-
-    print "Welcome to the Kismet netxml file parser\n"
+    welcome()
 
     try:
         opts, args = getopt.getopt(argv,"hi:x:q:")
