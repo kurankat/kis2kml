@@ -66,9 +66,9 @@ kis2kml -x strong_nets.kml \
         -q "SELECT * FROM networks WHERE max_signal_dbm > -60"
 
 
-kis2kml -x strong_wep.kml
+kis2kml -x strong_wep.kml \
         -q "SELECT * FROM networks WHERE max_signal_dbm > -60 AND encryption = 'WEP'"
 
-kis2kml -x open_but_cloaked.kml
+kis2kml -x open_but_cloaked.kml \
         -q "SELECT * FROM networks WHERE cloaked = 'true' AND encryption = 'OPEN'"
 ```
