@@ -8,6 +8,8 @@ import sys, getopt
 from os.path import exists
 from datetime import datetime
 
+database = 'wireless.db'
+runtime = ""
 total_discovered = 0
 total_saved = 0
 total_updated = 0
@@ -35,7 +37,7 @@ def usage():
 # Create a list of tree nodes that contain infrastructure networks
 # Parse xml into a list of dictionaries with all important network data
 def load_nets_from_xml(xfile):
-    global total_discovered
+    global total_discovered, runtime
     netnodes = []
     netlist_dicts = []
 
@@ -58,6 +60,13 @@ def load_nets_from_xml(xfile):
         usage()
         sys.exit(2)
 
+    for node in tree.iter('detection-run'):
+        runtime = node.attrib.get('start-time')
+
+    if runtime_exists():
+        print "This detection run (%s) has already been imported" %runtime
+        sys.exit()
+
     netnodes = pop_xml_netlist(tree)
 
     # For each wireless network node, create a dictionary, and append it to
@@ -67,6 +76,18 @@ def load_nets_from_xml(xfile):
     total_discovered = len(netnodes)
 
     return netlist_dicts
+
+def runtime_exists():
+    exists = False
+    con = sql.connect(database)
+    with con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM run")
+        db_run_time = cur.fetchall()
+        for rtime in db_run_time:
+            if (runtime != "") and (runtime in rtime):
+                exists = True
+    return exists
 
 # Function to return a list of eTree nodes. Takes the whole XML tree as the
 # argument and returns a list[] of nodes containing only infrastructire networks
@@ -228,12 +249,13 @@ def save_nets_to_db(netlist, dfile):
     global total_saved
     con = sql.connect(dfile)
     with con:
-        create_net_table(con)
+        create_tables(con)
         for net in netlist:
             process_network(net, con)
+        save_detection_run(dfile, con)
 
 # If networks table does not exist, create empty table in database
-def create_net_table(con):
+def create_tables(con):
     cur = con.cursor()
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS networks(
@@ -263,6 +285,7 @@ def create_net_table(con):
                     peak_lat TEXT,
                     peak_lon TEXT)
                """)
+    cur.execute("CREATE TABLE IF NOT EXISTS run(start_time TEXT)")
 
 # Check if network exists in database.
 # If it exists, and stored network is weaker, erase it and save new data.
@@ -407,6 +430,13 @@ def old_net_stronger(netdict, con):
     add_it_to_db(netdict, con)
     print "Updating wireless network with BSSID: %s to stronger version" \
             %netdict['bssid']
+
+# Save detection run start time
+def save_detection_run(dfile, con):
+    with con:
+        cur = con.cursor()
+        cur.execute("INSERT INTO run VALUES(?)", (runtime,))
+        print "Added runtime (%s) to database" % runtime
 
 # Turn each net dictionary into a list, return list
 def make_ordered_netlist(netdict):
@@ -620,7 +650,6 @@ def check_write(filename):
 ### SECTION 5: Main
 def main(argv):
     xmlsource = ''
-    database = 'wireless.db'
     query = ''
     welcome()
 
@@ -649,6 +678,7 @@ def main(argv):
             inputfile = arg
             netlist = load_nets_from_xml(inputfile)
             save_nets_to_db(netlist, database)
+            print "Detection run started on %s" % runtime
             print "\nFound %d wireless networks in Kismet netxml file" \
                     % total_discovered
             print "Added %d wireless networks to SQL database" % total_saved
