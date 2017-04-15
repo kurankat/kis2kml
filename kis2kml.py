@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# kis2kml.py is a script to process Kismet netxml files into
+# kis2kml.py is a Python 2 script to process Kismet netxml files into
 # Google Earth KML for visualization.
 
 import xml.etree.cElementTree as xml
@@ -29,7 +29,7 @@ def usage():
            "       -i <XML input file>   # Input file has to be "
            "Kismet .netxml")
     print ("       -x <KML export file>  # Export file can have "
-           "optional -q SQL query")
+           "optional -q SQL query (formatted for Sqlite)")
     print ("        -q '<SQL query>'\n")
 
 
@@ -629,7 +629,7 @@ def append_kml_placemarks(kmllist, netlist):
                        'Current Clients: %d<br>]]></description>' \
                         % (net['bssid'],net['last_seen'], net['encryption'], \
                         net['channel'], net['max_signal_dbm'], \
-                        net['numclients']))
+                        net['numclients'])) #Numclients for strongest encounter
         kmllist.append('\t\t\t\t<Point>')
         kmllist.append('\t\t\t\t\t<coordinates>%s,%s,0</coordinates>' \
                        % (net['peak_lon'], net['peak_lat']))
