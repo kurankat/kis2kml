@@ -1,6 +1,6 @@
 #! /usr/bin/env python
-# kis2kml.py is a script to process Kismet netxml files
-# into Google Earth KML for visualization.
+# kis2kml.py is a script to process Kismet netxml files into
+# Google Earth KML for visualization.
 
 import xml.etree.ElementTree as xml
 import sqlite3 as sql
@@ -8,17 +8,28 @@ import sys, getopt
 from os.path import exists
 from datetime import datetime
 
+database = 'wireless.db'
+runtime = ""
 total_discovered = 0
 total_saved = 0
+total_updated = 0
 total_exported = 0
 
+def welcome():
+    print "\n"
+    print "*******************************************************************"
+    print "*            kis2kml, a Kismet netxml file parser                 *"
+    print "*  Use this script to import networks from a Kismet .netxml file  *"
+    print "*        or to export them to a Google Earth .kml file            *"
+    print "*******************************************************************\n"
+
 def usage():
-    print """Usage: kisiter.py [options]
-        Options: can be either import (-i) or export (-x).
-        \t\t-i <XML input file>
-        \t\t-x <KML export file>  # Export file can have optional -q SQL query
-        \t\t-q \'<SQL query\'>'
-        """
+    print "Usage: kis2kml [options]"
+    print "       Options: can be either import (-i) or export (-x)."
+    print "                -i <XML input file>   # Input file has to be Kismet .netxml"
+    print "                -x <KML export file>  # Export file can have optional -q SQL query"
+    print "                -q '<SQL query>'\n"
+
 
 ### SECTION 1: Loading networks from Kismet netxml
 
@@ -26,15 +37,36 @@ def usage():
 # Create a list of tree nodes that contain infrastructure networks
 # Parse xml into a list of dictionaries with all important network data
 def load_nets_from_xml(xfile):
-    global total_discovered
+    global total_discovered, runtime
     netnodes = []
     netlist_dicts = []
 
     print "Reading network information from %s" %xfile
 
     # Open Kismet .netxml file and load into list of nodes
-    with open(xfile, 'rt') as kismet:
-            tree = xml.parse(kismet)
+    try:
+        with open(xfile, 'rt') as kismet:
+            try:
+                tree = xml.parse(kismet)
+            except xml.ParseError as xmlerr:
+                print "\n*** ERROR ***  Problem parsing input file."
+                print "               Is it a Kismet netxml file?"
+                print "               Python says: %s\n" % xmlerr
+                usage()
+                sys.exit(2)
+    except IOError as ioerr:
+        print "\n*** ERROR ***  Cannot read input file. Does it exist?"
+        print "\tPython says: %s\n" % ioerr
+        usage()
+        sys.exit(2)
+
+    for node in tree.iter('detection-run'):
+        runtime = node.attrib.get('start-time')
+
+    if runtime_exists():
+        print "This detection run (%s) has already been imported" %runtime
+        sys.exit()
+
     netnodes = pop_xml_netlist(tree)
 
     # For each wireless network node, create a dictionary, and append it to
@@ -45,6 +77,18 @@ def load_nets_from_xml(xfile):
 
     return netlist_dicts
 
+def runtime_exists():
+    exists = False
+    con = sql.connect(database)
+    with con:
+        cur = con.cursor()
+        cur.execute("SELECT * FROM run")
+        db_run_time = cur.fetchall()
+        for rtime in db_run_time:
+            if (runtime != "") and (runtime in rtime):
+                exists = True
+    return exists
+
 # Function to return a list of eTree nodes. Takes the whole XML tree as the
 # argument and returns a list[] of nodes containing only infrastructire networks
 def pop_xml_netlist(whole_tree):
@@ -52,6 +96,10 @@ def pop_xml_netlist(whole_tree):
     for node in whole_tree.findall('.//wireless-network'):
         if (node.attrib.get('type') == 'infrastructure'):
             nodelist.append(node)
+    if len(nodelist) == 0:
+        print "\n+++ WARNING +++  There don't seem to be any wireless networks in your input file\n"
+        usage()
+        sys.exit()
     return nodelist
 
 # Populate values of network dictionary from xml node
@@ -201,12 +249,13 @@ def save_nets_to_db(netlist, dfile):
     global total_saved
     con = sql.connect(dfile)
     with con:
-        create_net_table(con)
+        create_tables(con)
         for net in netlist:
             process_network(net, con)
+        save_detection_run(dfile, con)
 
 # If networks table does not exist, create empty table in database
-def create_net_table(con):
+def create_tables(con):
     cur = con.cursor()
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS networks(
@@ -236,20 +285,25 @@ def create_net_table(con):
                     peak_lat TEXT,
                     peak_lon TEXT)
                """)
+    cur.execute("CREATE TABLE IF NOT EXISTS run(start_time TEXT)")
 
 # Check if network exists in database.
 # If it exists, and stored network is weaker, erase it and save new data.
 def process_network(netdict, con):
+    global total_saved, total_updated
+
     exists = check_if_net_exists(netdict, con)
 
     if not exists:
         add_it_to_db(netdict, con)
         print "Adding wireless network with BSSID: %s to database" \
                 %netdict['bssid']
+        total_saved += 1
 
     elif exists:
         stronger = netpower(netdict, con)
         newer = xml_newer_than_db(netdict, con)
+        total_updated += 1
         if newer:
             if stronger:
                 new_net_stronger(netdict, con)
@@ -324,7 +378,6 @@ def add_it_to_db(netdict, con):
                 INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )""", netlist)
-    total_saved += 1
 
 # When wireless network is newer and weaker than same bssid in DB
 # then update 'last_seen' to latest timestamp
@@ -336,12 +389,10 @@ def new_net_weaker(netdict, con):
                 (netdict['last_seen'], netdict['bssid'],))
     print "Updating 'last_seen' field on %s to newer timestamp" \
             % netdict['bssid']
-    total_saved += 1
 
 # When wireless network is newer and stronger than same bssid in DB
 # then overwrite db with all new data except 'first_seen'
 def new_net_stronger(netdict, con):
-    global total_saved
     xml_first_seen = netdict['first_seen']
     cur = con.cursor()
     cur.execute('''SELECT first_seen FROM networks WHERE bssid = ?''', \
@@ -353,7 +404,6 @@ def new_net_stronger(netdict, con):
     add_it_to_db(netdict, con)
     print "Updating wireless network with BSSID: %s to stronger version" \
             %netdict['bssid']
-    total_saved += 1
 
 # When wireless network is older and weaker than same bssid in DB
 # then update 'first_seen' to earliest timestamp
@@ -365,12 +415,10 @@ def old_net_weaker(netdict, con):
                 (netdict['first_seen'], netdict['bssid'],))
     print "Updating 'first_seen' field on %s to older timestamp" \
             % netdict['bssid']
-    total_saved += 1
 
 # When wireless network is older and stronger than same bssid in DB
 # then overwrite db with all new data except 'last_seen'
 def old_net_stronger(netdict, con):
-    global total_saved
     xml_last_seen = netdict['last_seen']
     cur = con.cursor()
     cur.execute('''SELECT last_seen FROM networks WHERE bssid = ?''', \
@@ -382,7 +430,13 @@ def old_net_stronger(netdict, con):
     add_it_to_db(netdict, con)
     print "Updating wireless network with BSSID: %s to stronger version" \
             %netdict['bssid']
-    total_saved += 1
+
+# Save detection run start time
+def save_detection_run(dfile, con):
+    with con:
+        cur = con.cursor()
+        cur.execute("INSERT INTO run VALUES(?)", (runtime,))
+        print "Added runtime (%s) to database" % runtime
 
 # Turn each net dictionary into a list, return list
 def make_ordered_netlist(netdict):
@@ -596,10 +650,8 @@ def check_write(filename):
 ### SECTION 5: Main
 def main(argv):
     xmlsource = ''
-    database = 'wireless.db'
     query = ''
-
-    print "Welcome to the Kismet netxml file parser\n"
+    welcome()
 
     try:
         opts, args = getopt.getopt(argv,"hi:x:q:")
@@ -626,9 +678,11 @@ def main(argv):
             inputfile = arg
             netlist = load_nets_from_xml(inputfile)
             save_nets_to_db(netlist, database)
+            print "Detection run started on %s" % runtime
             print "\nFound %d wireless networks in Kismet netxml file" \
                     % total_discovered
             print "Added %d wireless networks to SQL database" % total_saved
+            print "Updated %d wireless networks in SQL database" % total_updated
 
         elif opt == "-x":
             exportfile = arg
