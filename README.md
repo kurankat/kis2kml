@@ -18,10 +18,15 @@ USAGE:
 kis2kml [options]
 
    Options:
-      -i <file-to-import.netxml>        Imports Kismet network data from a netxml file into a sqlite3 database ('wireless.db')
-      -x <file-to-write-kml-to.kml>     Exports all network data to a Google Earth KML file.
-           -q <'SQL query'>             Optional SQL query to restrict results to networks matching this query.
-                                        Query has to be a valid SQL query and inside quote marks.
+      -i <file-to-import.netxml>        Imports Kismet network data from a
+                                        netxml file into a sqlite3 database
+                                        ('wireless.db')
+      -x <file-to-write-kml-to.kml>     Exports all network data to a Google
+                                        Earth KML file.
+           -q <'SQL query'>             Optional SQL query to restrict results
+                                        to networks matching this query. Query
+                                        has to be a valid SQL query and inside
+                                        quote marks ('SQL query').
 ```                                   
 ### Table columns in database:
 
