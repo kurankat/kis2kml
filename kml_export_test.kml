@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+	<Document>
+		<name>Wireless Networks</name>
+		<description>Wireless networks parsed from Kismet xml</description>
+		<Style id="WPA broadcasting">
+			<IconStyle>
+				<color>ff0000FF</color>
+				<scale>1</scale>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+		<Style id="WPA cloaked">
+			<IconStyle>
+				<color>7f0000FF</color>
+				<scale>1</scale>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+		<Style id="WEP broadcasting">
+			<IconStyle>
+				<color>ff0090FF</color>
+				<scale>1</scale>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+		<Style id="WEP cloaked">
+			<IconStyle>
+				<color>7f0090FF</color>
+				<scale>1</scale>
+				<Icon>
+					<href>http://maps.google.com/mapfiles/kml/shapes/target.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+		<Folder>
+			<name>Placemarks</name>
+			<description>Wireless network locations</description>
+			<Placemark>
+				<name>Network 1</name>
+				<styleUrl>#WPA broadcasting</styleUrl>
+				<description><![CDATA[BSSID:00:00:00:00:00:01<br>Mon Dec 12 13:19:41 2016<br>Encryption: WPA+TKIP/PSK<br>Channel: 6<br>Signal: -55<br>Current Clients: 1<br>]]></description>
+				<Point>
+					<coordinates>115.824046,-31.985735,0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<name></name>
+				<styleUrl>#WEP cloaked</styleUrl>
+				<description><![CDATA[BSSID:00:00:00:00:00:02<br>Mon Dec 12 13:19:41 2016<br>Encryption: WEP<br>Channel: 6<br>Signal: -63<br>Current Clients: 1<br>]]></description>
+				<Point>
+					<coordinates>115.742122,-32.056992,0</coordinates>
+				</Point>
+			</Placemark>
+		</Folder>
+	</Document>
+</kml>

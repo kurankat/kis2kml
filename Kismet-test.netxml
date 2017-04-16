@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE detection-run SYSTEM "http://kismetwireless.net/kismet-3.1.0.dtd">
+
+<detection-run kismet-version="2016.01.R1" start-time="Mon Dec 12 13:14:43 2016">
+
+<card-source uuid="f6c260aa-c010-11e6-bd5b-de041023e201">
+ <card-source>wlan0:name=Name,</card-source>
+ <card-name>Name</card-name>
+ <card-interface>wlan0mon</card-interface>
+ <card-type>rt2800usb</card-type>
+ <card-packets>2772</card-packets>
+ <card-hop>true</card-hop>
+ <card-channels>1,5,9,13,2,6,10,14,3,7,11,4,8,12</card-channels>
+</card-source>
+  <wireless-network number="1" type="ad-hoc" first-time="Mon Dec 12 13:17:58 2016" last-time="Mon Dec 12 13:18:46 2016">
+    <BSSID>00:00:00:00:00:00</BSSID>
+    <manuf>Unknown</manuf>
+    <channel>0</channel>
+    <freqmhz>2437 3</freqmhz>
+    <maxseenrate>9000</maxseenrate>
+    <carrier>IEEE 802.11b+</carrier>
+    <encoding>CCK</encoding>
+     <packets>
+       <LLC>0</LLC>
+       <data>3</data>
+       <crypt>0</crypt>
+       <total>3</total>
+       <fragments>0</fragments>
+       <retries>0</retries>
+     </packets>
+     <datasize>102</datasize>
+    <snr-info>
+      <last_signal_dbm>-55</last_signal_dbm>
+      <last_noise_dbm>0</last_noise_dbm>
+      <last_signal_rssi>0</last_signal_rssi>
+      <last_noise_rssi>0</last_noise_rssi>
+      <min_signal_dbm>-79</min_signal_dbm>
+      <min_noise_dbm>0</min_noise_dbm>
+      <min_signal_rssi>1024</min_signal_rssi>
+      <min_noise_rssi>1024</min_noise_rssi>
+      <max_signal_dbm>-55</max_signal_dbm>
+      <max_noise_dbm>-256</max_noise_dbm>
+      <max_signal_rssi>0</max_signal_rssi>
+      <max_noise_rssi>0</max_noise_rssi>
+    </snr-info>
+    <gps-info>
+      <min-lat>-31.956367</min-lat>
+      <min-lon>115.8613464</min-lon>
+      <min-alt>22.000000</min-alt>
+      <min-spd>0.014000</min-spd>
+      <max-lat>-31.956367</max-lat>
+      <max-lon>115.8613464</max-lon>
+      <max-alt>22.000000</max-alt>
+      <max-spd>0.349000</max-spd>
+      <peak-lat>-31.956367</peak-lat>
+      <peak-lon>115.8613464</peak-lon>
+      <peak-alt>22.000000</peak-alt>
+      <avg-lat>-31.956367</avg-lat>
+      <avg-lon>115.8613464</avg-lon>
+      <avg-alt>22.000000</avg-alt>
+    </gps-info>
+    <bsstimestamp>Dec 12 13:18:46</bsstimestamp>
+    <cdp-device></cdp-device>
+    <cdp-portid></cdp-portid>
+    <seen-card>
+     <seen-uuid>f6c260aa-c010-11e6-bd5b-de041023e201</seen-uuid>
+     <seen-time>Mon Dec 12 13:18:46 2016</seen-time>
+     <seen-packets>3</seen-packets>
+    </seen-card>
+    <wireless-client number="1" type="ad-hoc" first-time="Mon Dec 12 13:17:58 2016" last-time="Mon Dec 12 13:18:46 2016">
+      <client-mac>00:00:00:00:00:00</client-mac>
+      <client-manuf>Unknown</client-manuf>
+      <channel>0</channel>
+      <freqmhz>2437 3</freqmhz>
+      <maxseenrate>9000</maxseenrate>
+      <carrier>IEEE 802.11b+</carrier>
+      <encoding>CCK</encoding>
+       <packets>
+         <LLC>0</LLC>
+         <data>3</data>
+         <crypt>0</crypt>
+         <total>3</total>
+         <fragments>0</fragments>
+         <retries>0</retries>
+       </packets>
+       <datasize>102</datasize>
+      <snr-info>
+        <last_signal_dbm>-55</last_signal_dbm>
+        <last_noise_dbm>0</last_noise_dbm>
+        <last_signal_rssi>0</last_signal_rssi>
+        <last_noise_rssi>0</last_noise_rssi>
+        <min_signal_dbm>-79</min_signal_dbm>
+        <min_noise_dbm>0</min_noise_dbm>
+        <min_signal_rssi>1024</min_signal_rssi>
+        <min_noise_rssi>1024</min_noise_rssi>
+        <max_signal_dbm>-55</max_signal_dbm>
+        <max_noise_dbm>-256</max_noise_dbm>
+        <max_signal_rssi>0</max_signal_rssi>
+        <max_noise_rssi>0</max_noise_rssi>
+      </snr-info>
+      <gps-info>
+        <min-lat>-31.956367</min-lat>
+        <min-lon>115.861346</min-lon>
+        <min-alt>22.000000</min-alt>
+        <min-spd>0.014000</min-spd>
+        <max-lat>-31.956367</max-lat>
+        <max-lon>115.861346</max-lon>
+        <max-alt>22.000000</max-alt>
+        <max-spd>0.349000</max-spd>
+        <peak-lat>-31.956367</peak-lat>
+        <peak-lon>115.861346</peak-lon>
+        <peak-alt>22.000000</peak-alt>
+        <avg-lat>-31.956367</avg-lat>
+        <avg-lon>115.861346</avg-lon>
+        <avg-alt>22.000000</avg-alt>
+      </gps-info>
+      <seen-card>
+       <seen-uuid>f6c260aa-c010-11e6-bd5b-de041023e201</seen-uuid>
+       <seen-time>Mon Dec 12 13:18:46 2016</seen-time>
+       <seen-packets>3</seen-packets>
+      </seen-card>
+    </wireless-client>
+  </wireless-network>
+  <wireless-network number="2" type="infrastructure" first-time="Mon Dec 12 13:16:26 2016" last-time="Mon Dec 12 13:19:41 2016">
+    <SSID first-time="Mon Dec 12 13:16:26 2016" last-time="Mon Dec 12 13:19:41 2016">
+        <type>Beacon</type>
+        <max-rate>54.000000</max-rate>
+        <packets>138</packets>
+        <beaconrate>10</beaconrate>
+        <wps>No</wps>
+        <encryption>WPA+TKIP</encryption>
+        <encryption>WPA+PSK</encryption>
+        <encryption>WPA+AES-CCM</encryption>
+        <wpa-version>WPA2</wpa-version>
+        <essid cloaked="false">Network 1</essid>
+    </SSID>
+    <BSSID>00:00:00:00:00:01</BSSID>
+    <manuf>NetManuf1</manuf>
+    <channel>6</channel>
+    <freqmhz>2432 1</freqmhz>
+    <freqmhz>2437 133</freqmhz>
+    <freqmhz>2442 4</freqmhz>
+    <maxseenrate>6000</maxseenrate>
+    <carrier>IEEE 802.11b+</carrier>
+    <encoding>CCK</encoding>
+     <packets>
+       <LLC>138</LLC>
+       <data>0</data>
+       <crypt>0</crypt>
+       <total>138</total>
+       <fragments>0</fragments>
+       <retries>0</retries>
+     </packets>
+     <datasize>0</datasize>
+    <snr-info>
+      <last_signal_dbm>-73</last_signal_dbm>
+      <last_noise_dbm>0</last_noise_dbm>
+      <last_signal_rssi>0</last_signal_rssi>
+      <last_noise_rssi>0</last_noise_rssi>
+      <min_signal_dbm>-81</min_signal_dbm>
+      <min_noise_dbm>0</min_noise_dbm>
+      <min_signal_rssi>1024</min_signal_rssi>
+      <min_noise_rssi>1024</min_noise_rssi>
+      <max_signal_dbm>-55</max_signal_dbm>
+      <max_noise_dbm>-256</max_noise_dbm>
+      <max_signal_rssi>0</max_signal_rssi>
+      <max_noise_rssi>0</max_noise_rssi>
+    </snr-info>
+    <gps-info>
+      <min-lat>-31.985735</min-lat>
+      <min-lon>115.824046</min-lon>
+      <min-alt>4.000000</min-alt>
+      <min-spd>0.001000</min-spd>
+      <max-lat>-31.985735</max-lat>
+      <max-lon>115.824046</max-lon>
+      <max-alt>5.000000</max-alt>
+      <max-spd>0.794000</max-spd>
+      <peak-lat>-31.985735</peak-lat>
+      <peak-lon>115.824046</peak-lon>
+      <peak-alt>5.000000</peak-alt>
+      <avg-lat>-31.985735</avg-lat>
+      <avg-lon>115.824046</avg-lon>
+      <avg-alt>4.500000</avg-alt>
+    </gps-info>
+    <bsstimestamp>Dec 12 06:28:40</bsstimestamp>
+    <cdp-device></cdp-device>
+    <cdp-portid></cdp-portid>
+    <seen-card>
+     <seen-uuid>f6c260aa-c010-11e6-bd5b-de041023e201</seen-uuid>
+     <seen-time>Mon Dec 12 13:19:41 2016</seen-time>
+     <seen-packets>138</seen-packets>
+    </seen-card>
+    <wireless-client number="1" type="fromds" first-time="Mon Dec 12 13:16:26 2016" last-time="Mon Dec 12 13:19:41 2016">
+      <client-mac>00:00:00:00:01:01</client-mac>
+      <client-manuf>ClientManuf1</client-manuf>
+      <channel>6</channel>
+      <freqmhz>2432 1</freqmhz>
+      <freqmhz>2437 133</freqmhz>
+      <freqmhz>2442 4</freqmhz>
+      <maxseenrate>6000</maxseenrate>
+      <carrier>IEEE 802.11b+</carrier>
+      <encoding>CCK</encoding>
+       <packets>
+         <LLC>138</LLC>
+         <data>0</data>
+         <crypt>0</crypt>
+         <total>138</total>
+         <fragments>0</fragments>
+         <retries>0</retries>
+       </packets>
+       <datasize>0</datasize>
+      <snr-info>
+        <last_signal_dbm>-73</last_signal_dbm>
+        <last_noise_dbm>0</last_noise_dbm>
+        <last_signal_rssi>0</last_signal_rssi>
+        <last_noise_rssi>0</last_noise_rssi>
+        <min_signal_dbm>-81</min_signal_dbm>
+        <min_noise_dbm>0</min_noise_dbm>
+        <min_signal_rssi>1024</min_signal_rssi>
+        <min_noise_rssi>1024</min_noise_rssi>
+        <max_signal_dbm>-67</max_signal_dbm>
+        <max_noise_dbm>-256</max_noise_dbm>
+        <max_signal_rssi>0</max_signal_rssi>
+        <max_noise_rssi>0</max_noise_rssi>
+      </snr-info>
+      <gps-info>
+        <min-lat>-31.985735</min-lat>
+        <min-lon>115.824046</min-lon>
+        <min-alt>5.000000</min-alt>
+        <min-spd>0.001000</min-spd>
+        <max-lat>-31.985735</max-lat>
+        <max-lon>115.824046</max-lon>
+        <max-alt>5.000000</max-alt>
+        <max-spd>0.794000</max-spd>
+        <peak-lat>-31.985735</peak-lat>
+        <peak-lon>115.824046</peak-lon>
+        <peak-alt>5.000000</peak-alt>
+        <avg-lat>-31.985735</avg-lat>
+        <avg-lon>115.824046</avg-lon>
+        <avg-alt>5.000000</avg-alt>
+      </gps-info>
+      <seen-card>
+       <seen-uuid>f6c260aa-c010-11e6-bd5b-de041023e201</seen-uuid>
+       <seen-time>Mon Dec 12 13:19:41 2016</seen-time>
+       <seen-packets>138</seen-packets>
+      </seen-card>
+    </wireless-client>
+  </wireless-network>
+  <wireless-network number="3" type="infrastructure" first-time="Mon Dec 12 13:16:32 2016" last-time="Mon Dec 12 13:19:41 2016">
+    <SSID first-time="Mon Dec 12 13:16:32 2016" last-time="Mon Dec 12 13:19:41 2016">
+        <type>Beacon</type>
+        <max-rate>54.000000</max-rate>
+        <packets>177</packets>
+        <beaconrate>10</beaconrate>
+        <wps>No</wps>
+        <encryption>WEP</encryption>
+        <essid cloaked="true"></essid>
+    </SSID>
+    <BSSID>00:00:00:00:00:02</BSSID>
+    <manuf>NetManuf2</manuf>
+    <channel>6</channel>
+    <freqmhz>2432 4</freqmhz>
+    <freqmhz>2437 162</freqmhz>
+    <freqmhz>2442 11</freqmhz>
+    <maxseenrate>6000</maxseenrate>
+    <carrier>IEEE 802.11b+</carrier>
+    <encoding>CCK</encoding>
+     <packets>
+       <LLC>177</LLC>
+       <data>0</data>
+       <crypt>0</crypt>
+       <total>177</total>
+       <fragments>0</fragments>
+       <retries>0</retries>
+     </packets>
+     <datasize>0</datasize>
+    <snr-info>
+      <last_signal_dbm>-73</last_signal_dbm>
+      <last_noise_dbm>0</last_noise_dbm>
+      <last_signal_rssi>0</last_signal_rssi>
+      <last_noise_rssi>0</last_noise_rssi>
+      <min_signal_dbm>-81</min_signal_dbm>
+      <min_noise_dbm>0</min_noise_dbm>
+      <min_signal_rssi>1024</min_signal_rssi>
+      <min_noise_rssi>1024</min_noise_rssi>
+      <max_signal_dbm>-63</max_signal_dbm>
+      <max_noise_dbm>-256</max_noise_dbm>
+      <max_signal_rssi>0</max_signal_rssi>
+      <max_noise_rssi>0</max_noise_rssi>
+    </snr-info>
+    <gps-info>
+      <min-lat>-32.056992</min-lat>
+      <min-lon>115.742122</min-lon>
+      <min-alt>43.000000</min-alt>
+      <min-spd>0.001000</min-spd>
+      <max-lat>-32.056992</max-lat>
+      <max-lon>115.7421221</max-lon>
+      <max-alt>55.599998</max-alt>
+      <max-spd>0.794000</max-spd>
+      <peak-lat>-32.056992</peak-lat>
+      <peak-lon>115.742122</peak-lon>
+      <peak-alt>53.400002</peak-alt>
+      <avg-lat>-32.056992</avg-lat>
+      <avg-lon>115.742122</avg-lon>
+      <avg-alt>51.456400</avg-alt>
+    </gps-info>
+    <bsstimestamp>Dec 11 23:06:09</bsstimestamp>
+    <cdp-device></cdp-device>
+    <cdp-portid></cdp-portid>
+    <seen-card>
+     <seen-uuid>f6c260aa-c010-11e6-bd5b-de041023e201</seen-uuid>
+     <seen-time>Mon Dec 12 13:19:41 2016</seen-time>
+     <seen-packets>177</seen-packets>
+    </seen-card>
+    <wireless-client number="1" type="fromds" first-time="Mon Dec 12 13:16:32 2016" last-time="Mon Dec 12 13:19:41 2016">
+      <client-mac>00:00:00:00:01:02</client-mac>
+      <client-manuf>ClientManuf2</client-manuf>
+      <channel>6</channel>
+      <freqmhz>2432 4</freqmhz>
+      <freqmhz>2437 162</freqmhz>
+      <freqmhz>2442 11</freqmhz>
+      <maxseenrate>6000</maxseenrate>
+      <carrier>IEEE 802.11b+</carrier>
+      <encoding>CCK</encoding>
+       <packets>
+         <LLC>177</LLC>
+         <data>0</data>
+         <crypt>0</crypt>
+         <total>177</total>
+         <fragments>0</fragments>
+         <retries>0</retries>
+       </packets>
+       <datasize>0</datasize>
+      <snr-info>
+        <last_signal_dbm>-73</last_signal_dbm>
+        <last_noise_dbm>0</last_noise_dbm>
+        <last_signal_rssi>0</last_signal_rssi>
+        <last_noise_rssi>0</last_noise_rssi>
+        <min_signal_dbm>-81</min_signal_dbm>
+        <min_noise_dbm>0</min_noise_dbm>
+        <min_signal_rssi>1024</min_signal_rssi>
+        <min_noise_rssi>1024</min_noise_rssi>
+        <max_signal_dbm>-63</max_signal_dbm>
+        <max_noise_dbm>-256</max_noise_dbm>
+        <max_signal_rssi>0</max_signal_rssi>
+        <max_noise_rssi>0</max_noise_rssi>
+      </snr-info>
+      <gps-info>
+        <min-lat>-32.056992</min-lat>
+        <min-lon>115.742122</min-lon>
+        <min-alt>10.000000</min-alt>
+        <min-spd>0.001000</min-spd>
+        <max-lat>-32.056992</max-lat>
+        <max-lon>115.742122</max-lon>
+        <max-alt>10.000000</max-alt>
+        <max-spd>0.794000</max-spd>
+        <peak-lat>-32.056992</peak-lat>
+        <peak-lon>115.742122</peak-lon>
+        <peak-alt>10.000000</peak-alt>
+        <avg-lat>-32.056992</avg-lat>
+        <avg-lon>115.742122</avg-lon>
+        <avg-alt>10.000000</avg-alt>
+      </gps-info>
+      <seen-card>
+       <seen-uuid>f6c260aa-c010-11e6-bd5b-de041023e201</seen-uuid>
+       <seen-time>Mon Dec 12 13:19:41 2016</seen-time>
+       <seen-packets>177</seen-packets>
+      </seen-card>
+    </wireless-client>
+  </wireless-network>
+  </detection-run>
