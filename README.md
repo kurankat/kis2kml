@@ -8,22 +8,23 @@ and produces a kml file that allows easy visualization of the network data
 inside Google Earth.
 
 kis2kml is essentially a rewrite in Python of some of the functionality of
-giskismet, which is written in Perl and comes bundled in with Kali Linux.
+GISKismet (https://github.com/xtr4nge/giskismet), which is written in Perl
+and comes bundled in with Kali Linux.
 
-I don't mind giskismet, it does the job relatively well, but I wanted to be
-able to make use of signal strength information in SQL queries, which giskismet
+I don't mind GISKismet, it does the job relatively well, but I wanted to be
+able to make use of signal strength information in SQL queries, which GISKismet
 ignores, to be able to filter networks that one can realistically attach to. I
-found Perl too hard to learn, so I taught myself Python and wrote a script to
-do the job.
+also don't think GISKismet handles clients well. I found Perl too hard to
+learn, so I taught myself Python and wrote a script to do the job.
 
 When exporting databased networks, you can export the whole database to a kml
 file, or pass the program an optional SQL query to select networks that conform
 with the given query. The SQL query must be inside double quotation marks.
 
-The Author in no way advocates the cracking of WiFi encryption or connecting to 
-private networks without permission. Mapping of wireless access points does not 
-violate any laws in the author's area, though I cannot comment on the legality 
-or illegality of wardriving in your country or area. Please keep this in mind 
+The Author in no way advocates the cracking of WiFi encryption or connecting to
+private networks without permission. Mapping of wireless access points does not
+violate any laws in the author's area, though I cannot comment on the legality
+or illegality of wardriving in your country or area. Please keep this in mind
 before using this program to parse wardriving data.
 
 ```
@@ -41,6 +42,8 @@ kis2kml [options]
                                         to networks matching this query. Query
                                         has to be a valid SQL query and inside
                                         quote marks ('SQL query').
+           -c                           Restrict export to networks that have
+                                        clients attached.
 ```                                   
 
 ### Usage examples:
@@ -57,7 +60,7 @@ kis2kml -x strong_nets.kml \
 
 kis2kml -x strong_wep.kml \
         -q "SELECT * FROM networks WHERE max_signal_dbm > -60 AND \
-        encryption = 'WEP'"
+        encryption = 'WEP'" -c
 
 kis2kml -x open_but_cloaked.kml \
         -q "SELECT * FROM networks WHERE cloaked = 'true' AND \
@@ -67,6 +70,7 @@ kis2kml -x open_but_cloaked.kml \
 ### Tables in database ('wireless.db')
 
 - networks
+- clients
 - run
 
 ### Table columns in networks:
@@ -93,6 +97,12 @@ kis2kml -x open_but_cloaked.kml \
 -  'max_signal_dbm'<br>
 -  'max_noise_dbm' <br>
 -  'peak_lat peak_lon'<br>
+
+### Table columns in networks:
+
+-  'bssid'<br>
+-  'client_mac'<br>
+-  'client_max_sig'<br>
 
 ### Table columns in run:
 

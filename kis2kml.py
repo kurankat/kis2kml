@@ -30,8 +30,15 @@ def usage():
            "Kismet .netxml")
     print ("       -x <KML export file>  # Export file can have "
            "optional -q SQL query (formatted for Sqlite)")
-    print ("        -q '<SQL query>'\n")
-
+    print ("          -q '<SQL query>'")
+    print ("          -c [Restricts export to networks with attached"
+           "clients]\n")
+    print ("Examples:\n"
+           "       kis2kml -i kismet-output-file.netxml\n"
+           "       kis2kml -x all-database-contents.kml\n"
+           "       kis2kml -x strong_wep.kml -c \\\n"
+           "           -q \"SELECT * FROM networks WHERE"
+           "max_signal_dbm > -60 AND encryption = \'WEP\'\"")
 
 ### SECTION 1: Loading networks from Kismet netxml
 
@@ -81,6 +88,8 @@ def load_nets_from_xml(xfile):
 
     return netlist_dicts, clientlist
 
+# Check if the Kismet run being imported has a start-time that is already
+# in the database
 def runtime_exists():
     exists = False
     con = sql.connect(database)
@@ -122,7 +131,7 @@ def populate_client_list(wireless_node, client_list):
             bssid = lev1.text
         if lev1.tag == 'wireless-client':
             cldata = []
-            if lev1.attrib['type'] == 'tods':
+            if lev1.attrib['type'] != 'fromds':
                 cldata.append(bssid)
                 for clientinfo in lev1:
                     if clientinfo.tag == 'client-mac':
@@ -324,6 +333,7 @@ def create_tables(con):
                                                       client_max_sig INT
                                                       )""")
 
+# Insert a client into the database if it doesn't already exist
 def save_client(client, con):
     exists = check_if_client_exists(client, con)
     if not exists:
@@ -331,6 +341,7 @@ def save_client(client, con):
         cur.execute("""INSERT INTO clients VALUES(?, ?, ?)""", client)
         print "Adding client with MAC: %s to database" % client[1]
 
+# Check if client already exists in database
 def check_if_client_exists(client, con):
     bssid, mac = client[0], client[1]
     exists = False
@@ -590,6 +601,7 @@ def load_from_db_with_sql_arg(dfile, sql_arg, clist, conly):
 
     return netlist
 
+# Load all clients in the database into a list
 def load_clients(dfile):
     clientlist = []
     con = sql.connect(dfile)
@@ -816,27 +828,3 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
-
-
-# Debugging functions
-def print_node(infranode):
-    print "\n\n"
-    for n in infranode.iter():
-        print n.tag, n.text, n.attrib
-
-def print_field(netlist, field):
-    print "\n\n"
-    for net in netlist:
-        for i in net:
-            if i == str(field):
-                print i, net[i]
-
-def print_dict(dicty):
-    print "\n\n"
-    for i in dicty:
-        print i, dicty[i]
-
-def print_list(netl):
-    for ls in netl:
-        print ls
-    print "\n"
