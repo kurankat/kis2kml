@@ -42,8 +42,9 @@ def load_nets_from_xml(xfile):
     global total_discovered, runtime
     netnodes = []
     netlist_dicts = []
+    clientlist = []
 
-    print "Reading network information from %s" %xfile
+    print "Reading network information from %s\n" %xfile
 
     # Open Kismet .netxml file and load into list of nodes
     try:
@@ -70,14 +71,15 @@ def load_nets_from_xml(xfile):
         sys.exit()
 
     netnodes = pop_xml_netlist(tree)
-
     # For each wireless network node, create a dictionary, and append it to
     # a list of network dictionaries
     for node in netnodes:
         netlist_dicts.append(populate_net_dict(node))
+        populate_client_list(node, clientlist)
     total_discovered = len(netnodes)
+    print ""
 
-    return netlist_dicts
+    return netlist_dicts, clientlist
 
 def runtime_exists():
     exists = False
@@ -110,6 +112,27 @@ def pop_xml_netlist(whole_tree):
         usage()
         sys.exit()
     return nodelist
+
+# Create a list of clients. Each client is a list of the router bssid,
+# the client MAC and the client max_signal
+def populate_client_list(wireless_node, client_list):
+
+    for lev1 in wireless_node:
+        if lev1.tag == 'BSSID':
+            bssid = lev1.text
+        if lev1.tag == 'wireless-client':
+            cldata = []
+            if lev1.attrib['type'] == 'tods':
+                cldata.append(bssid)
+                for clientinfo in lev1:
+                    if clientinfo.tag == 'client-mac':
+                        cldata.append(clientinfo.text)
+                    if clientinfo.tag == 'snr-info':
+                        for snr in clientinfo:
+                            if snr.tag == 'max_signal_dbm':
+                                cldata.append(snr.text)
+            if len(cldata) > 0:
+                client_list.append(cldata)
 
 # Populate values of network dictionary from xml node
 def populate_net_dict(wireless_node):
@@ -191,7 +214,6 @@ def populate_net_dict(wireless_node):
                     wn['peak_lon'] = gps_info.text
     # select appropriate text for encryption field
     wn['encryption'] = populate_encryption(wn['placeholder_encryption'])
-    wn['numclients'] = len(wn['clients'])
 
     print "Found infrastructure network with BSSID: %s - encryption: %s" \
              % (wn['bssid'], wn['encryption'])
@@ -223,11 +245,10 @@ def make_net_dict():
             'max_signal_dbm',
             'max_noise_dbm',
             'clients',
-            'numclients',
             'peak_lat',
             'peak_lon']
-    network = {key: None for key in keys}
-    return network
+    net_dict = {key: None for key in keys}
+    return net_dict
 
 # based in the entries in placeholder_encryption, return correct text
 def populate_encryption(placeholder_list):
@@ -255,13 +276,15 @@ def populate_encryption(placeholder_list):
 
 # Open connection to database and loop through networks,
 # adding appropriate ones to the database. Mostly self-explanatory
-def save_nets_to_db(netlist, dfile):
+def save_nets_to_db(netlist, clientlist, dfile):
     global total_saved
     con = sql.connect(dfile)
     with con:
         create_tables(con)
         for net in netlist:
             process_network(net, con)
+        for client in clientlist:
+            save_client(client, con)
         save_detection_run(dfile, con)
 
 # If networks table does not exist, create empty table in database
@@ -285,7 +308,6 @@ def create_tables(con):
                     cloaked TEXT,
                     manuf TEXT,
                     channel INT,
-                    numclients INT,
                     first_seen TEXT,
                     last_seen TEXT,
                     max_speed INT,
@@ -296,6 +318,31 @@ def create_tables(con):
                     peak_lon TEXT)
                """)
     cur.execute("CREATE TABLE IF NOT EXISTS run(start_time TEXT)")
+    cur.execute("""CREATE TABLE IF NOT EXISTS clients(
+                                                      bssid TEXT,
+                                                      client_mac TEXT,
+                                                      client_max_sig INT
+                                                      )""")
+
+def save_client(client, con):
+    exists = check_if_client_exists(client, con)
+    if not exists:
+        cur = con.cursor()
+        cur.execute("""INSERT INTO clients VALUES(?, ?, ?)""", client)
+        print "Adding client with MAC: %s to database" % client[1]
+
+def check_if_client_exists(client, con):
+    bssid, mac = client[0], client[1]
+    exists = False
+
+    cur = con.cursor()
+    cur.execute("SELECT bssid,client_mac FROM clients")
+    rows = cur.fetchall()
+    for row in rows:
+        if bssid in row and mac in row:
+            exists = True
+
+    return exists
 
 # Check if network exists in database.
 # If it exists, and stored network is weaker, erase it and save new data.
@@ -385,7 +432,7 @@ def add_it_to_db(netdict, con):
     netlist = make_ordered_netlist(netdict)
     cur = con.cursor()
     cur.execute("""
-                INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?, ?,
+                INSERT INTO networks VALUES(?, ?, ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
                 )""", netlist)
 
@@ -467,7 +514,6 @@ def make_ordered_netlist(netdict):
             netdict['cloaked'],
             netdict['manuf'],
             int(netdict['channel']),
-            int(netdict['numclients']),
             netdict['first_seen'],
             netdict['last_seen'],
             netdict['max_speed'],
@@ -489,8 +535,11 @@ def delete_net_from_db(netdict, con):
 ### SECTION 3: Loading networks from database to create KML
 
 # Load every network in the database.
-def load_all_nets_from_db(dfile):
+def load_all_nets_from_db(dfile, clist, conly):
     netlist = []
+    client_bssids = []
+    for client in clist:
+        client_bssids.append(client[0])
     con = sql.connect(dfile)
     with con:
         con.row_factory = sql.Row
@@ -498,14 +547,23 @@ def load_all_nets_from_db(dfile):
         cur.execute("SELECT * from networks")
         rows = cur.fetchall()
         for row in rows:
-            rowdic = parse_db_row(row)
-            netlist.append(rowdic)
+            if conly:
+                if row['bssid'] in client_bssids:
+                    rowdic = parse_db_row(row, conly)
+                    netlist.append(rowdic)
+            else:
+                rowdic = parse_db_row(row, conly)
+                netlist.append(rowdic)
     return netlist
 
 # Load networks that match a specific SQL query
-def load_from_db_with_sql_arg(dfile, sql_arg):
+def load_from_db_with_sql_arg(dfile, sql_arg, clist, conly):
     query = sql_arg
     netlist = []
+    client_bssids = []
+    for client in clist:
+        client_bssids.append(client[0])
+
     con = sql.connect(dfile)
     with con:
         con.row_factory = sql.Row
@@ -522,13 +580,32 @@ def load_from_db_with_sql_arg(dfile, sql_arg):
             sys.exit(2)
 
         for row in rows:
-            rowdic = parse_db_row(row)
-            netlist.append(rowdic)
+            if conly:
+                if row['bssid'] in client_bssids:
+                    rowdic = parse_db_row(row, conly)
+                    netlist.append(rowdic)
+            else:
+                rowdic = parse_db_row(row, conly)
+                netlist.append(rowdic)
 
     return netlist
 
+def load_clients(dfile):
+    clientlist = []
+    con = sql.connect(dfile)
+    with con:
+        cur = con.cursor()
+        cur.execute("SELECT * from clients")
+        rows = cur.fetchall()
+        for row in rows:
+            client = []
+            for column in row:
+                client.append(column)
+            clientlist.append(client)
+    return clientlist
+
 # Parse rows of database into dictionary
-def parse_db_row(row):
+def parse_db_row(row, conly):
     wndb = make_net_dict()
     for item in row.keys():
         wndb[item] = row[item]
@@ -536,11 +613,11 @@ def parse_db_row(row):
 
 ### SECTION 4: Crafting KML
 # Assemble all the KML pieces into a list with one line per list item
-def make_kml(netlist):
+def make_kml(netlist, clientlist):
     kmllist = []
     kmllist = create_kml_headers(kmllist)
     kmllist = append_kml_styles(kmllist, netlist)
-    kmllist = append_kml_placemarks(kmllist, netlist)
+    kmllist = append_kml_placemarks(kmllist, netlist, clientlist)
     kmllist = close_kml(kmllist)
     return kmllist
 
@@ -591,14 +668,23 @@ def append_kml_styles(kmllist, netlist):
     return kmllist
 
 # Create KML Placemark text and append to list for every network in query
-def append_kml_placemarks(kmllist, netlist):
+def append_kml_placemarks(kmllist, netlist, clientlist):
     global total_exported
-    nets = netlist
     kmllist.append('\t\t<Folder>')
     kmllist.append('\t\t\t<name>Placemarks</name>')
     kmllist.append('\t\t\t<description>Wireless network locations'
                    '</description>')
     for net in netlist:
+        clients_in_net = []
+        for client in clientlist:
+            if client[0] == net['bssid']:
+                clients_in_net.append(client)
+
+        client_html = 'Clients: %d<br>' % len(clients_in_net)
+        if len(clients_in_net) > 0:
+            for client in clients_in_net:
+                client_html += '%s (%d)<br>' % (client[1], client[2])
+
         kmllist.append('\t\t\t<Placemark>')
         if net['essid']:
             kmllist.append('\t\t\t\t<name>%s</name>' % net['essid'])
@@ -626,10 +712,10 @@ def append_kml_placemarks(kmllist, netlist):
                                '</styleUrl>')
         kmllist.append('\t\t\t\t<description><![CDATA[BSSID:%s<br>%s<br>'
                        'Encryption: %s<br>Channel: %d<br>Signal: %d<br>'
-                       'Current Clients: %d<br>]]></description>' \
+                       '%s]]></description>' \
                         % (net['bssid'],net['last_seen'], net['encryption'], \
                         net['channel'], net['max_signal_dbm'], \
-                        net['numclients'])) #Numclients for strongest encounter
+                        client_html))
         kmllist.append('\t\t\t\t<Point>')
         kmllist.append('\t\t\t\t\t<coordinates>%s,%s,0</coordinates>' \
                        % (net['peak_lon'], net['peak_lat']))
@@ -673,10 +759,11 @@ def check_write(filename):
 def main(argv):
     xmlsource = ''
     query = ''
+    with_clients_only = False
     welcome()
 
     try:
-        opts, args = getopt.getopt(argv,"hi:x:q:")
+        opts, args = getopt.getopt(argv,"hi:x:q:c")
 
     except getopt.GetoptError as err:
         print str(err)
@@ -690,6 +777,8 @@ def main(argv):
     for opt, arg in opts:
         if opt == "-q":
             query = arg
+        if opt == "-c":
+            with_clients_only = True
 
     for opt, arg in opts:
         if opt == '-h':
@@ -698,8 +787,8 @@ def main(argv):
 
         elif opt == "-i":
             inputfile = arg
-            netlist = load_nets_from_xml(inputfile)
-            save_nets_to_db(netlist, database)
+            netlist, clientlist = load_nets_from_xml(inputfile)
+            save_nets_to_db(netlist, clientlist, database)
             print "\nFound %d wireless networks in Kismet netxml file" \
                     % total_discovered
             print "Added %d wireless networks to SQL database" % total_saved
@@ -709,10 +798,16 @@ def main(argv):
         elif opt == "-x":
             exportfile = arg
             if len(query) > 0:
-                db_list = load_from_db_with_sql_arg(database, query)
+                clientlist = load_clients(database)
+                db_list = load_from_db_with_sql_arg(database, query, \
+                                                    clientlist, \
+                                                    with_clients_only)
             else:
-                db_list = load_all_nets_from_db(database)
-            kml_content = make_kml(db_list)
+                clientlist = load_clients(database)
+                db_list = load_all_nets_from_db(database, \
+                                                clientlist, \
+                                                with_clients_only)
+            kml_content = make_kml(db_list, clientlist)
             kml_to_file(kml_content, exportfile)
             print "\nExported %d networks to KML file" % total_exported
 
