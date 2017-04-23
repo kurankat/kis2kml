@@ -625,21 +625,24 @@ def parse_db_row(row, conly):
 
 ### SECTION 4: Crafting KML
 # Assemble all the KML pieces into a list with one line per list item
-def make_kml(netlist, clientlist):
+def make_kml(netlist, clientlist, query):
     kmllist = []
-    kmllist = create_kml_headers(kmllist)
+    kmllist = create_kml_headers(kmllist, query)
     kmllist = append_kml_styles(kmllist, netlist)
     kmllist = append_kml_placemarks(kmllist, netlist, clientlist)
     kmllist = close_kml(kmllist)
     return kmllist
 
 # Create header rows
-def create_kml_headers(kmllist):
+def create_kml_headers(kmllist, query):
     kmllist.append('<?xml version="1.0" encoding="UTF-8"?>')
     kmllist.append('<kml xmlns="http://www.opengis.net/kml/2.2">')
     kmllist.append('\t<Document>')
     kmllist.append('\t\t<name>Wireless Networks</name>')
-    kmllist.append('\t\t<description>Wireless networks '
+    if len(query) > 0:
+        kmllist.append('\t\t<description>%s</description>' % query)
+    else:
+        kmllist.append('\t\t<description>Wireless networks '
                    'parsed from Kismet xml</description>')
     return kmllist
 
@@ -819,7 +822,7 @@ def main(argv):
                 db_list = load_all_nets_from_db(database, \
                                                 clientlist, \
                                                 with_clients_only)
-            kml_content = make_kml(db_list, clientlist)
+            kml_content = make_kml(db_list, clientlist, query)
             kml_to_file(kml_content, exportfile)
             print "\nExported %d networks to KML file" % total_exported
 
