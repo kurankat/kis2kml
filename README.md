@@ -98,7 +98,7 @@ kis2kml -x open_but_cloaked.kml \
 -  'max_noise_dbm' <br>
 -  'peak_lat peak_lon'<br>
 
-### Table columns in networks:
+### Table columns in clients:
 
 -  'bssid'<br>
 -  'client_mac'<br>
