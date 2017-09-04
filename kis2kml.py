@@ -7,6 +7,7 @@ import sqlite3 as sql
 import sys, getopt
 from os.path import exists
 from datetime import datetime
+from xml.sax.saxutils import escape
 
 database = 'wireless.db'
 runtime = ""
@@ -640,7 +641,7 @@ def create_kml_headers(kmllist, query):
     kmllist.append('\t<Document>')
     kmllist.append('\t\t<name>Wireless Networks</name>')
     if len(query) > 0:
-        kmllist.append('\t\t<description>%s</description>' % query)
+        kmllist.append('\t\t<description>%s</description>' % escape(query))
     else:
         kmllist.append('\t\t<description>Wireless networks '
                    'parsed from Kismet xml</description>')
