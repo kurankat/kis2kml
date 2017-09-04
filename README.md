@@ -75,11 +75,13 @@ kis2kml -x open_but_cloaked.kml \
 
 ### Table columns in networks:
 
--  'wn_num bssid' <br>
+-  'wn_num' <br>
+-  'bssid' <br>
 -  'essid' <br>
 -  'encryption' <br>
 -  'ssid_wpa_version' <br>
--  'ssid_type packets' <br>
+-  'ssid_type' <br>
+-  'packets' <br>
 -  'beaconrate' <br>
 -  'wps' <br>
 -  'wps_manuf' <br>
@@ -96,7 +98,8 @@ kis2kml -x open_but_cloaked.kml \
 -  'maxseenrate' <br>
 -  'max_signal_dbm'<br>
 -  'max_noise_dbm' <br>
--  'peak_lat peak_lon'<br>
+-  'peak_lat' <br>
+-  'peak_lon' <br>
 
 ### Table columns in clients:
 
