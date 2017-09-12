@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# kis2kml.py is a Python 2 script to process Kismet netxml files into
+# kis2kml.py is a Python 2.7 script to process Kismet netxml files into
 # Google Earth KML for visualization.
 
 import xml.etree.cElementTree as xml
@@ -7,6 +7,7 @@ import sqlite3 as sql
 import sys, getopt
 from os.path import exists
 from datetime import datetime
+from xml.sax.saxutils import escape
 
 database = 'wireless.db'
 runtime = ""
@@ -640,7 +641,7 @@ def create_kml_headers(kmllist, query):
     kmllist.append('\t<Document>')
     kmllist.append('\t\t<name>Wireless Networks</name>')
     if len(query) > 0:
-        kmllist.append('\t\t<description>%s</description>' % query)
+        kmllist.append('\t\t<description>%s</description>' % escape(query))
     else:
         kmllist.append('\t\t<description>Wireless networks '
                    'parsed from Kismet xml</description>')
@@ -702,7 +703,7 @@ def append_kml_placemarks(kmllist, netlist, clientlist):
 
         kmllist.append('\t\t\t<Placemark>')
         if net['essid']:
-            kmllist.append('\t\t\t\t<name>%s</name>' % net['essid'])
+            kmllist.append('\t\t\t\t<name>%s</name>' % escape(net['essid']))
         else:
             kmllist.append('\t\t\t\t<name></name>')
         if 'WEP' in net['encryption']:
