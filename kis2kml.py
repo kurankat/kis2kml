@@ -703,7 +703,7 @@ def append_kml_placemarks(kmllist, netlist, clientlist):
 
         kmllist.append('\t\t\t<Placemark>')
         if net['essid']:
-            kmllist.append('\t\t\t\t<name>%s</name>' % net['essid'])
+            kmllist.append('\t\t\t\t<name>%s</name>' % escape(net['essid']))
         else:
             kmllist.append('\t\t\t\t<name></name>')
         if 'WEP' in net['encryption']:
