@@ -1,5 +1,8 @@
 # kis2kml
 
+**This repository is now archived**. I am in the process of migrating away from 
+GitHub altogether.
+
 A python script to parse wireless networks into a sqlite3 database
 'wireless.db' and query this database to generate Google Earth KML files.
 
